@@ -1,8 +1,8 @@
 # CSC 415 - Project 5 - Producer Consumer - Part 2
 
-## Student Name : Name goes here
+## Student Name : Brian Lai
 
-## Student ID : ID goes here
+## Student ID : 916818167
 
 ## Build Instructions
 
