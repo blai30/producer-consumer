@@ -4,6 +4,6 @@
 
 ## Student ID : 916818167
 
-## Build Instructions
+### Part 1 - Thread Racer
 
-## Run Instructions
+### Part 2 - Producer Consumer Problem
