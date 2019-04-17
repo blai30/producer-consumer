@@ -1,8 +1,8 @@
-# CSC 415 - Project 5 - Producer Consumer Problem
+# CSC 415 - Project 5 - Producer Consumer
 
-## Student Name: Brian Lai
+## Student Name : Brian Lai
 
-## Student ID: 916818167
+## Student ID : 916818167
 
 ## Build Instructions
 
