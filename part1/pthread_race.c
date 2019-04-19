@@ -23,22 +23,26 @@
 struct timespec ts = {0, 3000000};   // default: {0, 150000}
 
 int global_value = 0;
+pthread_mutex_t lock;
 
 void* add_thread_func(void* arg) {
     int tid = *((int*) arg);
     for (int i = 0; i < MAX_ITERATIONS; i++) {
+        pthread_mutex_lock(&lock);
         int temp = global_value;
         temp += 10;
         global_value = temp;
 
         printf("Current Value written to Global Variables by ADDER thread id: %d is %d\n", tid, temp);
         nanosleep(&ts, NULL);
+        pthread_mutex_unlock(&lock);
     }
 }
 
 void* sub_thread_func(void* arg) {
     int tid = *((int *) arg);
     for (int i = 0; i < MAX_ITERATIONS; i++) {
+        pthread_mutex_lock(&lock);
         int temp = global_value;
         nanosleep(&ts, NULL);
         temp -= 10;
@@ -46,11 +50,13 @@ void* sub_thread_func(void* arg) {
 
         printf("Current Value written to Global Variables by SUBTRACTOR thread id: %d is %d\n", tid, temp);
         nanosleep(&ts, NULL);
+        pthread_mutex_unlock(&lock);
     }
 }
 
 int main(int argc, char** argv) {
     pthread_t ids[MAX_THREADS];
+    pthread_mutex_init(&lock, NULL);
 
     int i;
     for (i = 0; i < MAX_THREADS; i += 2) {
