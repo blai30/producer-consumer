@@ -12,8 +12,7 @@
  * Function to remove item.
  * Item removed is returned
  */
-int dequeue_item()
-{
+int dequeue_item() {
     
 }
 
@@ -26,11 +25,19 @@ int dequeue_item()
  * the return value, do not change the
  * return type to void. 
  */
-int enqueue_item(int item)
-{
+int enqueue_item(int item) {
    
 }
 
+/*
+ * $ ./pandc <N> <P> <C> <X> <Ptime> <Ctime>
+ *      N = number of buffers to maintain
+ *      P = number of producer threads
+ *      C = number of consumer threads
+ *      X = number of items each producer thread will produce
+ *  Ptime = how long each producer thread will sleep after producing an item in seconds
+ *  Ctime = how long each consumer thread will sleep after consuming an item in seconds
+ */
 int main(int argc, char** argv) {
 
 }
