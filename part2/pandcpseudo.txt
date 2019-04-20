@@ -1,1 +1,45 @@
-pseudo goes here
+mutex lock = 1;
+semaphore full = 0;
+semaphore empty = N;    // N is the number of buffers to maintain
+int* buffer[N];
+
+function producer() {
+    while (true) {
+        item = produce();
+
+        wait(empty);
+        P(lock);
+
+        enqueue(item);
+
+        V(lock);
+        signal(full);
+    }
+}
+
+function consumer() {
+    while (true) {
+        wait(full);
+        P(lock);
+
+        item = dequeue();
+
+        V(lock);
+        signal(empty);
+
+        consume(item);
+    }
+}
+
+function item enqueue(item) {
+    buffer[index] = item;
+    full++;
+    return item;
+}
+
+function item dequeue() {
+    item = buffer[index];
+    buffer[index] = 0;
+    full--;
+    return item;
+}
