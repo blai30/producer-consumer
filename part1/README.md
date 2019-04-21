@@ -7,7 +7,7 @@
 ## Build Instructions
 ### Windows
 ```
-gcc filecopy.c [filename]
+gcc threadracer.c [filename]
 ```
 or if `make` is configured in %PATH% with MinGW or Cygwin
 ```
