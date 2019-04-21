@@ -20,8 +20,23 @@ pthread_mutex_t lock;
 sem_t full;
 sem_t empty;
 
+int global_value = 1;
+
 int* buffer;
 int buffer_index;
+
+int* prod_arr;
+int* cons_arr;
+
+int num_buffers;
+int num_producers;
+int num_consumers;
+int items_produced;
+int items_consumed;
+int over_consume;
+int over_consume_amount;
+int p_time;
+int c_time;
 
 /* 
  * Function to remove item.
@@ -29,7 +44,7 @@ int buffer_index;
  */
 int dequeue_item() {
     int item = buffer[buffer_index];
-    buffer[buffer_index] = 0;
+    buffer[buffer_index] = 1;
     return item;
 }
 
@@ -43,16 +58,61 @@ int dequeue_item() {
  * return type to void. 
  */
 int enqueue_item(int item) {
-    buffer[buffer_index] = item;
+    buffer[buffer_index++] = item;
     return item;
 }
 
+/**
+ * Produces item in buffer.
+ * @param arg
+ * @return
+ */
 void* producer(void* arg) {
     int tid = *((int*) arg);
+    int item;
+
+    for (int i = 0; i < items_produced; i++) {
+        item = global_value++;
+        prod_arr[i] = item;
+        printf(COL_GRN "%6d was produced by producer->\t%6d\n" COL_RESET, item, tid);
+
+        sem_wait(&empty);
+        pthread_mutex_lock(&lock);
+
+        enqueue_item(item);
+        sleep(p_time);
+
+        pthread_mutex_unlock(&lock);
+        sem_post(&full);
+    }
+
+    pthread_exit(0);
 }
 
+/**
+ * Consumes item in buffer.
+ * @param arg
+ * @return
+ */
 void* consumer(void* arg) {
     int tid = *((int*) arg);
+    int item;
+
+    for (int i = 0; i < items_consumed; i++) {
+        sem_wait(&full);
+        pthread_mutex_lock(&lock);
+
+        item = dequeue_item();
+        sleep(c_time);
+
+        pthread_mutex_unlock(&lock);
+        sem_post(&empty);
+
+        cons_arr[i] = item;
+        printf(COL_RED "%6d was consumed by consumer->\t%6d\n" COL_RESET, item, tid);
+    }
+
+    pthread_exit(0);
 }
 
 /*
@@ -67,8 +127,8 @@ void* consumer(void* arg) {
 int main(int argc, char** argv) {
     // argv[0] is the program itself ("./pandc")
     if (argc != 7) {
-        perror("Enter 6 arguments: \"$ ./pandc <N> <P> <C> <X> <Ptime> <Ctime>\"\n");
-        return 0;
+        printf("Enter 6 arguments: \"$ ./pandc <N> <P> <C> <X> <Ptime> <Ctime>\"\n");
+        exit(EXIT_FAILURE);
     }
 
     // Print current time
@@ -76,15 +136,15 @@ int main(int argc, char** argv) {
     printf(COL_YEL "Current time: %s\n" COL_RESET, ctime(&cur_time));
 
     // Read command-line args
-    int num_buffers         = strtol(argv[1], NULL, 10);
-    int num_producers       = strtol(argv[2], NULL, 10);
-    int num_consumers       = strtol(argv[3], NULL, 10);
-    int items_produced      = strtol(argv[4], NULL, 10);
-    int items_consumed      = (num_producers * items_produced) / num_consumers;
-    int over_consume        = ((num_producers * items_produced) % num_consumers > 0) ? 1 : 0;
-    int over_consume_amount = (num_producers * items_produced) - (num_consumers * items_consumed);
-    int p_time              = strtol(argv[5], NULL, 10);
-    int c_time              = strtol(argv[6], NULL, 10);
+    num_buffers         = strtol(argv[1], NULL, 10);
+    num_producers       = strtol(argv[2], NULL, 10);
+    num_consumers       = strtol(argv[3], NULL, 10);
+    items_produced      = strtol(argv[4], NULL, 10);
+    items_consumed      = (num_producers * items_produced) / num_consumers;
+    over_consume        = ((num_producers * items_produced) % num_consumers > 0) ? 1 : 0;
+    over_consume_amount = (num_producers * items_produced) - (num_consumers * items_consumed);
+    p_time              = strtol(argv[5], NULL, 10);
+    c_time              = strtol(argv[6], NULL, 10);
 
     // Print producer-consumer problem information
     printf("\t                        Number of Buffers : %6d\n", num_buffers);
@@ -96,12 +156,45 @@ int main(int argc, char** argv) {
     printf("\t                      Over consume amount : %6d\n", over_consume_amount);
     printf("\t      Time each Producer Sleeps (seconds) : %6d\n", p_time);
     printf("\t      Time each Consumer Sleeps (seconds) : %6d\n", c_time);
+    printf("\n");
 
-    // Initialize mutex, semaphore, buffer
+    // Initialize mutex, semaphore, buffer, arrays
     pthread_mutex_init(&lock, NULL);    // mutex lock = 1;
     sem_init(&full, 0, 0);              // semaphore full = 0;
     sem_init(&empty, 0, num_buffers);   // semaphore empty = N;
-    buffer = malloc(num_buffers);       // buffer[N];
+    buffer = malloc(sizeof(int*) * num_buffers);       // buffer[N];
+    prod_arr = malloc(sizeof(int*) * num_producers * items_produced);
+    cons_arr = malloc(sizeof(int*) * num_consumers * items_consumed);
+
+    pthread_t producer_ids[num_producers];
+    pthread_t consumer_ids[num_consumers];
+
+    // Create producer and consumer threads
+    for (int i = 1; i <= num_producers; i++) {
+        pthread_create(&producer_ids[i], NULL, producer, (void*) &i);
+    }
+    for (int i = 1; i <= num_consumers; i++) {
+        pthread_create(&consumer_ids[i], NULL, consumer, (void*) &i);
+    }
+
+    // Join producer and consumer threads
+    for (int i = 1; i <= num_producers; i++) {
+        pthread_join(producer_ids[i], NULL);
+        printf(COL_BLU "Producer thread joined:%6d\n" COL_RESET, i);
+    }
+    for (int i = 1; i <= num_consumers; i++) {
+        pthread_join(consumer_ids[i], NULL);
+        printf(COL_MAG "Consumer thread joined:%6d\n" COL_RESET, i);
+    }
+
+    cur_time = time(0);
+    printf(COL_YEL "Current time: %s\n" COL_RESET, ctime(&cur_time));
+
+    pthread_mutex_destroy(&lock);
+    sem_destroy(&full);
+    sem_destroy(&empty);
+
+    free(buffer);
 
     return 0;
 }
