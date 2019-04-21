@@ -80,7 +80,7 @@ void* producer(void* arg) {
         pthread_mutex_lock(&lock);
 
         enqueue_item(item);
-        sleep(p_time);
+//        sleep(p_time);
 
         pthread_mutex_unlock(&lock);
         sem_post(&full);
@@ -103,7 +103,7 @@ void* consumer(void* arg) {
         pthread_mutex_lock(&lock);
 
         item = dequeue_item();
-        sleep(c_time);
+//        sleep(c_time);
 
         pthread_mutex_unlock(&lock);
         sem_post(&empty);
@@ -180,7 +180,7 @@ int main(int argc, char** argv) {
     // Join producer and consumer threads
     for (int i = 1; i <= num_producers; i++) {
         pthread_join(producer_ids[i], NULL);
-        printf(COL_BLU "Producer thread joined:%6d\n" COL_RESET, i);
+        printf(COL_CYN "Producer thread joined:%6d\n" COL_RESET, i);
     }
     for (int i = 1; i <= num_consumers; i++) {
         pthread_join(consumer_ids[i], NULL);
@@ -189,6 +189,18 @@ int main(int argc, char** argv) {
 
     cur_time = time(0);
     printf(COL_YEL "Current time: %s\n" COL_RESET, ctime(&cur_time));
+
+    int match = 1;
+    printf("Producer Array\t| Consumer Array\n");
+    for (int i = 0; i < num_producers * items_produced; i++) {
+        printf("%d\t\t\t\t| %d\n", prod_arr[i], cons_arr[i]);
+        if (prod_arr[i] != cons_arr[i]) {
+            match = 0;
+        }
+    }
+
+    printf("\nConsume and Produce Arrays %s!\n", (match) ? "Match" : "DO NOT Match");
+    printf("Total Runtime: %d secs\n", 0);
 
     pthread_mutex_destroy(&lock);
     sem_destroy(&full);
