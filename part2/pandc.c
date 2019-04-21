@@ -132,8 +132,8 @@ int main(int argc, char** argv) {
     }
 
     // Print current time
-    time_t cur_time = time(0);
-    printf(COL_YEL "Current time: %s\n" COL_RESET, ctime(&cur_time));
+    time_t start_time = time(0);
+    printf(COL_YEL "Current time: %s\n" COL_RESET, ctime(&start_time));
 
     // Read command-line args
     num_buffers         = strtol(argv[1], NULL, 10);
@@ -187,8 +187,8 @@ int main(int argc, char** argv) {
         printf(COL_MAG "Consumer thread joined:%6d\n" COL_RESET, i);
     }
 
-    cur_time = time(0);
-    printf(COL_YEL "Current time: %s\n" COL_RESET, ctime(&cur_time));
+    time_t end_time = time(0);
+    printf(COL_YEL "Current time: %s\n" COL_RESET, ctime(&end_time));
 
     int match = 1;
     printf("Producer Array\t| Consumer Array\n");
@@ -200,7 +200,7 @@ int main(int argc, char** argv) {
     }
 
     printf("\nConsume and Produce Arrays %s!\n", (match) ? "Match" : "DO NOT Match");
-    printf("Total Runtime: %d secs\n", 0);
+    printf("\nTotal Runtime: %d secs\n", (int) (end_time - start_time));
 
     pthread_mutex_destroy(&lock);
     sem_destroy(&full);
