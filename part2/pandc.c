@@ -7,6 +7,15 @@
 #include <time.h>
 #include <semaphore.h>
 
+#define COL_RED     "\x1B[31m"
+#define COL_GRN     "\x1B[32m"
+#define COL_YEL     "\x1B[33m"
+#define COL_BLU     "\x1B[34m"
+#define COL_MAG     "\x1B[35m"
+#define COL_CYN     "\x1B[36m"
+#define COL_WHT     "\x1B[37m"
+#define COL_RESET   "\x1B[0m"
+
 pthread_mutex_t lock;
 sem_t full;
 sem_t empty;
@@ -64,7 +73,7 @@ int main(int argc, char** argv) {
 
     // Print current time
     time_t cur_time = time(0);
-    printf("Current time: %s\n", ctime(&cur_time));
+    printf(COL_YEL "Current time: %s\n" COL_RESET, ctime(&cur_time));
 
     // Read command-line args
     int num_buffers         = strtol(argv[1], NULL, 10);
@@ -76,9 +85,6 @@ int main(int argc, char** argv) {
     int over_consume_amount = (num_producers * items_produced) - (num_consumers * items_consumed);
     int p_time              = strtol(argv[5], NULL, 10);
     int c_time              = strtol(argv[6], NULL, 10);
-
-    struct timespec Ptime = {p_time};
-    struct timespec Ctime = {c_time};
 
     // Print producer-consumer problem information
     printf("\t                        Number of Buffers : %6d\n", num_buffers);
