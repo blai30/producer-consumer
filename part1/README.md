@@ -7,7 +7,7 @@
 ## Build Instructions
 ### Windows
 ```
-gcc threadracer.c [filename]
+gcc pthread_race.c [filename]
 ```
 or if `make` is configured in %PATH% with MinGW or Cygwin
 ```
