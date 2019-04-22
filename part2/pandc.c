@@ -82,7 +82,7 @@ void* producer(void* arg) {
         pthread_mutex_lock(&lock);
 
         enqueue_item(item);
-        sleep(p_time);
+//        sleep(p_time);
 
         pthread_mutex_unlock(&lock);
         sem_post(&full);
@@ -105,12 +105,12 @@ void* consumer(void* arg) {
         pthread_mutex_lock(&lock);
 
         item = dequeue_item();
-        sleep(c_time);
+        consumer_arr[i] = item;
+//        sleep(c_time);
 
         pthread_mutex_unlock(&lock);
         sem_post(&empty);
 
-        consumer_arr[i] = item;
         printf(COL_RED "%5d was consumed by consumer->\t%5d\n" COL_RESET, item, tid);
     }
 
