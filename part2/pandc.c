@@ -16,7 +16,7 @@
 #define COL_WHT     "\x1B[37m"
 #define COL_RESET   "\x1B[0m"
 
-sem_t mutex;
+pthread_mutex_t lock;
 sem_t full;
 sem_t empty;
 
@@ -79,12 +79,12 @@ void* producer(void* arg) {
         printf(COL_GRN "%5d was produced by producer->\t%5d\n" COL_RESET, item, tid);
 
         sem_wait(&empty);
-        sem_wait(&mutex);
+        pthread_mutex_lock(&lock);
 
         enqueue_item(item);
         sleep(p_time);
 
-        sem_post(&mutex);
+        pthread_mutex_unlock(&lock);
         sem_post(&full);
     }
 
@@ -102,12 +102,12 @@ void* consumer(void* arg) {
 
     for (int i = 0; i < items_consumed; i++) {
         sem_wait(&full);
-        sem_wait(&mutex);
+        pthread_mutex_lock(&lock);
 
         item = dequeue_item();
         sleep(c_time);
 
-        sem_post(&mutex);
+        pthread_mutex_unlock(&lock);
         sem_post(&empty);
 
         consumer_arr[i] = item;
@@ -161,7 +161,7 @@ int main(int argc, char** argv) {
     printf("\n");
 
     // Initialize mutex, semaphore, buffer, arrays
-    sem_init(&mutex, 0, 1);    // mutex lock = 1;
+    pthread_mutex_init(&lock, NULL);    // mutex lock = 1;
     sem_init(&full, 0, 0);              // semaphore full = 0;
     sem_init(&empty, 0, num_buffers);   // semaphore empty = N;
     buffer = malloc(sizeof(int*) * num_buffers);       // buffer[N];
@@ -205,7 +205,7 @@ int main(int argc, char** argv) {
     printf("\nConsume and Produce Arrays %s!\n", (match) ? "Match" : "DO NOT Match");
     printf("\nTotal Runtime: %d secs\n", (int) (end_time - start_time));
 
-    sem_destroy(&mutex);
+    pthread_mutex_destroy(&lock);
     sem_destroy(&full);
     sem_destroy(&empty);
 
