@@ -23,7 +23,8 @@ sem_t empty;
 int global_value = 1;
 
 int* buffer;
-int buffer_index;
+int in_index;
+int out_index;
 
 int* producer_arr;
 int* consumer_arr;
@@ -43,9 +44,8 @@ int c_time;
  * Item removed is returned
  */
 int dequeue_item() {
-    int item = buffer[buffer_index];
-    buffer[buffer_index] = 0;
-    buffer_index--;
+    int item = buffer[out_index];
+    out_index = (out_index + 1) % num_buffers;
     return item;
 }
 
@@ -59,8 +59,8 @@ int dequeue_item() {
  * return type to void. 
  */
 int enqueue_item(int item) {
-    buffer[buffer_index] = item;
-    buffer_index++;
+    buffer[in_index] = item;
+    in_index = (in_index + 1) % num_buffers;
     return item;
 }
 
@@ -75,13 +75,13 @@ void* producer(void* arg) {
 
     for (int i = 0; i < items_produced; i++) {
         item = global_value++;
-        producer_arr[i] = item;
-        printf(COL_GRN "%5d was produced by producer->\t%5d\n" COL_RESET, item, tid);
 
         sem_wait(&empty);
         pthread_mutex_lock(&lock);
 
         enqueue_item(item);
+        producer_arr[i] = item;
+        printf(COL_GRN "%5d was produced by producer->\t%5d\n" COL_RESET, item, tid);
 //        sleep(p_time);
 
         pthread_mutex_unlock(&lock);
@@ -106,12 +106,11 @@ void* consumer(void* arg) {
 
         item = dequeue_item();
         consumer_arr[i] = item;
+        printf(COL_RED "%5d was consumed by consumer->\t%5d\n" COL_RESET, item, tid);
 //        sleep(c_time);
 
         pthread_mutex_unlock(&lock);
         sem_post(&empty);
-
-        printf(COL_RED "%5d was consumed by consumer->\t%5d\n" COL_RESET, item, tid);
     }
 
     pthread_exit(0);
@@ -167,17 +166,23 @@ int main(int argc, char** argv) {
     buffer = malloc(sizeof(int*) * num_buffers);       // buffer[N];
     producer_arr = malloc(sizeof(int*) * num_producers * items_produced);
     consumer_arr = malloc(sizeof(int*) * num_consumers * items_consumed);
-    buffer_index = 0;
+    in_index = 0;
+    out_index = 0;
 
+    // New threads
     pthread_t producer_ids[num_producers];
     pthread_t consumer_ids[num_consumers];
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
 
     // Create producer and consumer threads
-    for (int i = 1; i <= num_producers; i++) {
-        pthread_create(&producer_ids[i], NULL, producer, (void*) &i);
+    for (int i = 0; i < num_producers; i++) {
+        int id = i + 1;
+        pthread_create(&producer_ids[i], &attr, producer, (void*) &id);
     }
-    for (int i = 1; i <= num_consumers; i++) {
-        pthread_create(&consumer_ids[i], NULL, consumer, (void*) &i);
+    for (int i = 0; i < num_consumers; i++) {
+        int id = i + 1;
+        pthread_create(&consumer_ids[i], &attr, consumer, (void*) &id);
     }
 
     // Join producer and consumer threads
@@ -193,6 +198,7 @@ int main(int argc, char** argv) {
     time_t end_time = time(0);
     printf(COL_YEL "Current time: %s\n" COL_RESET, ctime(&end_time));
 
+    // Compare and match producer and consumer arrays
     int match = 1;
     printf("Producer Array\t| Consumer Array\n");
     for (int i = 0; i < num_producers * items_produced; i++) {
@@ -205,10 +211,10 @@ int main(int argc, char** argv) {
     printf("\nConsume and Produce Arrays %s!\n", (match) ? "Match" : "DO NOT Match");
     printf("\nTotal Runtime: %d secs\n", (int) (end_time - start_time));
 
+    // Cleanup
     pthread_mutex_destroy(&lock);
     sem_destroy(&full);
     sem_destroy(&empty);
-
     free(buffer);
 
     return 0;

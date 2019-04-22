@@ -33,13 +33,12 @@ function consumer() {
 
 function item enqueue(item) {
     buffer[index] = item;
-    full++;
+    full = (full + 1) % N;
     return item;
 }
 
 function item dequeue() {
     item = buffer[index];
-    buffer[index] = 0;
-    full--;
+    full = (full + 1) % N;
     return item;
 }
