@@ -143,7 +143,7 @@ int main(int argc, char** argv) {
     num_consumers       = strtol(argv[3], NULL, 10);
     items_produced      = strtol(argv[4], NULL, 10);
     items_consumed      = (num_producers * items_produced) / num_consumers;
-    over_consume        = ((num_producers * items_produced) % num_consumers > 0) ? 1 : 0;
+    over_consume        = (num_producers * items_produced) % num_consumers > 0 ? 1 : 0;
     over_consume_amount = (num_producers * items_produced) - (num_consumers * items_consumed);
     p_time              = strtol(argv[5], NULL, 10);
     c_time              = strtol(argv[6], NULL, 10);
