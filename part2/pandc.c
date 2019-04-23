@@ -74,6 +74,7 @@ void* producer(void* arg) {
     int item;
 
     for (int i = 0; i < items_produced; i++) {
+        sleep(p_time);
         item = global_value++;
 
         sem_wait(&empty);
@@ -82,7 +83,6 @@ void* producer(void* arg) {
         enqueue_item(item);
         producer_arr[i] = item;
         printf(COL_GRN "%5d was produced by producer->\t%5d\n" COL_RESET, item, tid);
-//        sleep(p_time);
 
         pthread_mutex_unlock(&lock);
         sem_post(&full);
@@ -101,13 +101,13 @@ void* consumer(void* arg) {
     int item;
 
     for (int i = 0; i < items_consumed; i++) {
+        sleep(c_time);
         sem_wait(&full);
         pthread_mutex_lock(&lock);
 
         item = dequeue_item();
         consumer_arr[i] = item;
         printf(COL_RED "%5d was consumed by consumer->\t%5d\n" COL_RESET, item, tid);
-//        sleep(c_time);
 
         pthread_mutex_unlock(&lock);
         sem_post(&empty);
@@ -178,19 +178,19 @@ int main(int argc, char** argv) {
     // Create producer and consumer threads
     for (int i = 0; i < num_producers; i++) {
         int id = i + 1;
-        pthread_create(&producer_ids[i], &attr, producer, (void*) &id);
+        pthread_create(&producer_ids[i], &attr, &producer, (void*) &id);
     }
     for (int i = 0; i < num_consumers; i++) {
         int id = i + 1;
-        pthread_create(&consumer_ids[i], &attr, consumer, (void*) &id);
+        pthread_create(&consumer_ids[i], &attr, &consumer, (void*) &id);
     }
 
     // Join producer and consumer threads
-    for (int i = 1; i <= num_producers; i++) {
+    for (int i = 0; i < num_producers; i++) {
         pthread_join(producer_ids[i], NULL);
         printf(COL_CYN "Producer thread joined:%5d\n" COL_RESET, i);
     }
-    for (int i = 1; i <= num_consumers; i++) {
+    for (int i = 0; i < num_consumers; i++) {
         pthread_join(consumer_ids[i], NULL);
         printf(COL_MAG "Consumer thread joined:%5d\n" COL_RESET, i);
     }
