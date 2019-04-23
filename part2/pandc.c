@@ -45,6 +45,7 @@ int c_time;
  */
 int dequeue_item() {
     int item = buffer[out_index];
+    buffer[out_index] = 0;
     out_index = (out_index + 1) % num_buffers;
     return item;
 }
