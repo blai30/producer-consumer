@@ -28,6 +28,8 @@ int out_index;
 
 int* producer_arr;
 int* consumer_arr;
+int p_idx = 0;
+int c_idx = 0;
 
 int num_buffers;
 int num_producers;
@@ -75,14 +77,14 @@ void* producer(void* arg) {
     int item;
 
     for (int i = 0; i < items_produced; i++) {
-        sleep(p_time);
         item = global_value++;
 
+        sleep(p_time);
         sem_wait(&empty);
         pthread_mutex_lock(&lock);
 
         enqueue_item(item);
-        producer_arr[i] = item;
+        producer_arr[p_idx++] = item;
         printf(COL_GRN "%5d was produced by producer->\t%5d\n" COL_RESET, item, tid);
 
         pthread_mutex_unlock(&lock);
@@ -107,7 +109,7 @@ void* consumer(void* arg) {
         pthread_mutex_lock(&lock);
 
         item = dequeue_item();
-        consumer_arr[i] = item;
+        consumer_arr[c_idx++] = item;
         printf(COL_RED "%5d was consumed by consumer->\t%5d\n" COL_RESET, item, tid);
 
         pthread_mutex_unlock(&lock);
