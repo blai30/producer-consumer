@@ -103,17 +103,33 @@ void* consumer(void* arg) {
     int tid = *((int*) arg);
     int item;
 
-    for (int i = 0; i < items_consumed; i++) {
-        sleep(c_time);
-        sem_wait(&full);
-        pthread_mutex_lock(&lock);
+    if (!over_consume) {
+        for (int i = 0; i < items_consumed; i++) {
+            sleep(c_time);
+            sem_wait(&full);
+            pthread_mutex_lock(&lock);
 
-        item = dequeue_item();
-        consumer_arr[c_idx++] = item;
-        printf(COL_RED "%5d was consumed by consumer->\t%5d\n" COL_RESET, item, tid);
+            item = dequeue_item();
+            consumer_arr[c_idx++] = item;
+            printf(COL_RED "%5d was consumed by consumer->\t%5d\n" COL_RESET, item, tid);
 
-        pthread_mutex_unlock(&lock);
-        sem_post(&empty);
+            pthread_mutex_unlock(&lock);
+            sem_post(&empty);
+        }
+    } else {
+        over_consume = 0;
+        for (int i = 0; i < items_consumed + over_consume_amount; i++) {
+            sleep(c_time);
+            sem_wait(&full);
+            pthread_mutex_lock(&lock);
+
+            item = dequeue_item();
+            consumer_arr[c_idx++] = item;
+            printf(COL_RED "%5d was consumed by consumer->\t%5d\n" COL_RESET, item, tid);
+
+            pthread_mutex_unlock(&lock);
+            sem_post(&empty);
+        }
     }
 
     pthread_exit(0);
