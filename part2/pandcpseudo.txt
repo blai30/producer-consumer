@@ -1,44 +1,54 @@
 mutex lock = 1;
 semaphore full = 0;
 semaphore empty = N;    // N is the number of buffers to maintain
-int* buffer[N];
+int buffer[N];
+int in_index;
+int out_index;
+int global_value = 1;
 
 function producer() {
+    int item;
     while (true) {
-        item = produce();
+        item = global_value++;
 
         wait(empty);
         P(lock);
 
         enqueue(item);
+        add item to producer array;
 
         V(lock);
         signal(full);
+        sleep;
     }
+    exit thread;
 }
 
 function consumer() {
+    int item;
     while (true) {
         wait(full);
         P(lock);
 
         item = dequeue();
+        add item to consumer array;
 
         V(lock);
         signal(empty);
-
-        consume(item);
+        sleep;
     }
+    exit thread;
 }
 
 function item enqueue(item) {
-    buffer[index] = item;
-    full = (full + 1) % N;
+    buffer[in_index] = item;
+    in_index = (in_index + 1) % N;
     return item;
 }
 
 function item dequeue() {
-    item = buffer[index];
-    full = (full + 1) % N;
+    item = buffer[out_index];
+    delete item at buffer[out_index];
+    out_index = (out_index + 1) % N;
     return item;
 }
