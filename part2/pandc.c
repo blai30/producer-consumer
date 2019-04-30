@@ -219,16 +219,16 @@ int main(int argc, char** argv) {
 
     // Compare and match producer and consumer arrays
     int match = 1;
-    printf("Producer Array\t| Consumer Array\n");
+    fprintf(stderr, "Producer Array\t| Consumer Array\n");
     for (int i = 0; i < num_producers * items_produced; i++) {
-        printf("%d\t\t\t\t| %d\n", producer_arr[i], consumer_arr[i]);
+        fprintf(stderr, "%d\t\t\t\t| %d\n", producer_arr[i], consumer_arr[i]);
         if (producer_arr[i] != consumer_arr[i]) {
             match = 0;
         }
     }
 
-    printf("\nConsume and Produce Arrays %s!\n", (match) ? "Match" : "DO NOT Match");
-    printf("\nTotal Runtime: %d secs\n", (int) (end_time - start_time));
+    fprintf(stderr, "\nConsume and Produce Arrays %s!\n", (match) ? "Match" : "DO NOT Match");
+    fprintf(stderr, "\nTotal Runtime: %d secs\n", (int) (end_time - start_time));
 
     // Cleanup
     pthread_mutex_destroy(&lock);
