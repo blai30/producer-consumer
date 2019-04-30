@@ -79,7 +79,6 @@ void* producer(void* arg) {
     for (int i = 0; i < items_produced; i++) {
         item = global_value++;
 
-        sleep(p_time);
         sem_wait(&empty);
         pthread_mutex_lock(&lock);
 
@@ -89,6 +88,7 @@ void* producer(void* arg) {
 
         pthread_mutex_unlock(&lock);
         sem_post(&full);
+        sleep(p_time);
     }
 
     pthread_exit(0);
@@ -105,7 +105,6 @@ void* consumer(void* arg) {
 
     if (!over_consume) {
         for (int i = 0; i < items_consumed; i++) {
-            sleep(c_time);
             sem_wait(&full);
             pthread_mutex_lock(&lock);
 
@@ -115,11 +114,11 @@ void* consumer(void* arg) {
 
             pthread_mutex_unlock(&lock);
             sem_post(&empty);
+            sleep(c_time);
         }
     } else {
         over_consume = 0;
         for (int i = 0; i < items_consumed + over_consume_amount; i++) {
-            sleep(c_time);
             sem_wait(&full);
             pthread_mutex_lock(&lock);
 
@@ -129,6 +128,7 @@ void* consumer(void* arg) {
 
             pthread_mutex_unlock(&lock);
             sem_post(&empty);
+            sleep(c_time);
         }
     }
 
