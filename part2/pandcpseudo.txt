@@ -52,3 +52,41 @@ function item dequeue() {
     out_index = (out_index + 1) % N;
     return item;
 }
+
+main {
+    parse args;
+    N = argv[1];      // number of buffers to maintain
+    P = argv[2];      // number of producer threads
+    C = argv[3];      // number of consumer threads
+    X = argv[4];      // number of items each producer thread will produce
+    Ptime = argv[5];  // how long each producer thread will sleep after producing an item in seconds
+    Ctime = argv[6];  // how long each consumer thread will sleep after consuming an item in seconds
+
+    items_consumed = P * X / C;
+    over_consume_amount = (P * X) - (C * items_consumed);
+    over_consume = (over_consume_amount > 0) ? 1 : 0;
+
+    print all the info;
+
+    for i < P {
+        create producer thread;
+    }
+    for i < C {
+        create consumer thread;
+    }
+
+    for i < P {
+        join producer threads;
+    }
+    for i < C {
+        join consumer threads;
+    }
+
+    flag match = true;
+    for i < P * X {
+        print producer_array[i] and consumer_array[i];
+        if producer_array[i] != consumer_array[i] {
+            match = false;
+        }
+    }
+}
