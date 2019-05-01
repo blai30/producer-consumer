@@ -191,17 +191,15 @@ int main(int argc, char** argv) {
     // New threads
     pthread_t producer_ids[num_producers];
     pthread_t consumer_ids[num_consumers];
-    pthread_attr_t attr;
-    pthread_attr_init(&attr);
 
     // Create producer and consumer threads
     for (int i = 0; i < num_producers; i++) {
         int id = i + 1;
-        pthread_create(&producer_ids[i], &attr, &producer, (void*) &id);
+        pthread_create(&producer_ids[i], NULL, &producer, (void*) &id);
     }
     for (int i = 0; i < num_consumers; i++) {
         int id = i + 1;
-        pthread_create(&consumer_ids[i], &attr, &consumer, (void*) &id);
+        pthread_create(&consumer_ids[i], NULL, &consumer, (void*) &id);
     }
 
     // Join producer and consumer threads
