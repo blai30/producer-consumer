@@ -16,21 +16,26 @@
 #define COL_WHT     "\x1B[37m"
 #define COL_RESET   "\x1B[0m"
 
+// Global mutex and semaphores
 pthread_mutex_t lock;
 sem_t full;
 sem_t empty;
 
+// Global item to be incremented and enqueued
 int global_value = 1;
 
+// Queue
 int* buffer;
 int in_index;
 int out_index;
 
+// Producer and consumer arrays for comparing
 int* producer_arr;
 int* consumer_arr;
 int p_idx = 0;
 int c_idx = 0;
 
+// Global args
 int num_buffers;
 int num_producers;
 int num_consumers;
@@ -69,7 +74,7 @@ int enqueue_item(int item) {
 
 /**
  * Produces item in buffer.
- * @param arg
+ * @param arg pid
  * @return
  */
 void* producer(void* arg) {
@@ -77,17 +82,23 @@ void* producer(void* arg) {
     int item;
 
     for (int i = 0; i < items_produced; i++) {
+        // Increment global item
         item = global_value++;
 
+        // Lock semaphore and mutex
         sem_wait(&empty);
         pthread_mutex_lock(&lock);
 
+        // Produce item onto queue
         enqueue_item(item);
         producer_arr[p_idx++] = item;
         printf(COL_GRN "%5d was produced by producer->\t%5d\n" COL_RESET, item, tid);
 
+        // Unlock mutex and semaphore
         pthread_mutex_unlock(&lock);
         sem_post(&full);
+
+        // Sleep
         sleep(p_time);
     }
 
@@ -96,7 +107,7 @@ void* producer(void* arg) {
 
 /**
  * Consumes item in buffer.
- * @param arg
+ * @param arg pid
  * @return
  */
 void* consumer(void* arg) {
@@ -104,30 +115,42 @@ void* consumer(void* arg) {
     int item;
 
     if (!over_consume) {
+        // Either over or not required
         for (int i = 0; i < items_consumed; i++) {
+            // Lock semaphore and mutex
             sem_wait(&full);
             pthread_mutex_lock(&lock);
 
+            // Consume item from queue
             item = dequeue_item();
             consumer_arr[c_idx++] = item;
             printf(COL_RED "%5d was consumed by consumer->\t%5d\n" COL_RESET, item, tid);
 
+            // Unlock mutex and semaphore
             pthread_mutex_unlock(&lock);
             sem_post(&empty);
+
+            // Sleep
             sleep(c_time);
         }
     } else {
+        // Over consume if needed at the beginning of the program
         over_consume = 0;
         for (int i = 0; i < items_consumed + over_consume_amount; i++) {
+            // Lock semaphore and mutex
             sem_wait(&full);
             pthread_mutex_lock(&lock);
 
+            // Consume item from queue
             item = dequeue_item();
             consumer_arr[c_idx++] = item;
             printf(COL_RED "%5d was consumed by consumer->\t%5d\n" COL_RESET, item, tid);
 
+            // Unlock mutex and semaphore
             pthread_mutex_unlock(&lock);
             sem_post(&empty);
+
+            // Sleep
             sleep(c_time);
         }
     }
@@ -216,12 +239,12 @@ int main(int argc, char** argv) {
     printf(COL_YEL "Current time: %s\n" COL_RESET, ctime(&end_time));
 
     // Compare and match producer and consumer arrays
-    int match = 1;
+    int match = 1;      // Start out as true
     fprintf(stderr, "Producer Array\t| Consumer Array\n");
     for (int i = 0; i < num_producers * items_produced; i++) {
         fprintf(stderr, "%d\t\t\t\t| %d\n", producer_arr[i], consumer_arr[i]);
         if (producer_arr[i] != consumer_arr[i]) {
-            match = 0;
+            match = 0;  // False when mismatch detected
         }
     }
 
