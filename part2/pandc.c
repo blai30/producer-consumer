@@ -207,7 +207,8 @@ int main(int argc, char** argv) {
     sem_init(&empty, 0, num_buffers);   // semaphore empty = N;
     buffer = malloc(sizeof(int*) * num_buffers);       // buffer[N];
     producer_arr = malloc(sizeof(int*) * num_producers * items_produced);
-    consumer_arr = malloc(sizeof(int*) * num_consumers * items_consumed);
+    consumer_arr = malloc(sizeof(int*) * num_producers * items_produced);
+//    consumer_arr = malloc(sizeof(int*) * num_consumers * items_consumed);
     in_index = 0;
     out_index = 0;
 
